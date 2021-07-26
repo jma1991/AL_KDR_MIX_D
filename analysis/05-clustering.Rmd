@@ -215,7 +215,7 @@ sce$cluster_kmeans <- factor(cls$cluster)
 Check the number of clusters before plotting:
 
 ```{r}
-run <- ifelse(num > 1, TRUE, FALSE)
+run <- ifelse(num > 2, TRUE, FALSE)
 ```
 
 Plot the distances between clusters using their centroids:
