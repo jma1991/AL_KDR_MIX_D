@@ -1,0 +1,180 @@
+---
+title: "Doublet detection"
+author: "James Ashmore"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+## Setup
+
+Set chunk options:
+
+```{r}
+knitr::opts_chunk$set(
+  autodep    = TRUE,
+  cache      = TRUE,
+  cache.path = "cache/06-doublet-detection.Rmd/",
+  dev        = "png",
+  error      = FALSE,
+  message    = FALSE,
+  warning    = FALSE
+)
+```
+
+Load required packages:
+
+```{r}
+library(scater)
+library(scran)
+library(scDblFinder)
+```
+
+Read experiment data:
+
+```{r}
+sce <- readRDS("output/05-clustering.rds")
+```
+
+## Detection
+
+### By cluster {.tabset}
+
+Check there are at least three clusters to detect doublet clusters:
+
+```{r}
+num <- nlevels(sce$cluster)
+
+run <- ifelse(num < 3, FALSE, TRUE)
+```
+
+Identify potential clusters of doublet cells based on intermediate expression profiles:
+
+```{r eval = run}
+set.seed(0100001011)
+
+dbl <- findDoubletClusters(sce, sce$cluster)
+```
+
+Annotate clusters that have unusually low number of unique genes:
+
+```{r eval = run}
+out <- isOutlier(dbl$num.de, type = "lower", log = TRUE)
+
+ids <- rownames(dbl)[out]
+
+sce$doublet_cluster <- ifelse(sce$cluster %in% ids, TRUE, FALSE)
+```
+
+Inspect the distribution of doublet clusters on reduced dimensions:
+
+#### PCA
+
+```{r}
+plotPCA(sce, colour_by = "cluster", shape_by = "doublet_cluster")
+```
+
+#### TSNE
+
+```{r}
+plotTSNE(sce, colour_by = "cluster", shape_by = "doublet_cluster")
+```
+
+#### UMAP
+
+```{r}
+plotUMAP(sce, colour_by = "cluster", shape_by = "doublet_cluster")
+```
+
+### {.tabset}
+
+Check for any doublet clusters:
+
+```{r eval = run}
+run <- any(sce$doublet_cluster)
+```
+
+Find significant marker genes between clusters:
+
+```{r eval = run}
+res <- findMarkers(sce, sce$cluster, direction = "up")
+
+sig <- lapply(res, subset, FDR < 0.1)
+
+sig <- Filter(nrow, sig)
+```
+
+Inspect the expression of marker genes across clusters:
+
+```{r eval = run, results = "asis"}
+for (i in ids) {
+  
+  dat <- sig[[i]]
+  
+  dat <- subset(dat, Top <= 10)
+  
+  top <- rownames(dat)
+  
+  cat("#### Cluster", i, "\n")
+
+  plotHeatmap(sce, order_columns_by = "cluster", features = top, center = TRUE, symmetric = TRUE)
+
+  cat("\n\n")
+
+}
+```
+
+### By cell {.tabset}
+
+Identify potential doublet cells based on simulations of putative doublet expression profiles:
+
+```{r}
+set.seed(1001110010)
+
+hvg <- rowData(sce)$selected
+
+dim <- ncol(reducedDim(sce))
+
+dbl <- computeDoubletDensity(sce, subset.row = hvg, d = dim)
+
+sce$doublet_score <- dbl
+```
+
+Inspect the distribution of doublet scores on reduced dimensions:
+
+#### PCA
+
+```{r}
+plotPCA(sce, colour_by = "doublet_score")
+```
+
+#### TSNE
+
+```{r}
+plotTSNE(sce, colour_by = "doublet_score")
+```
+
+#### UMAP
+
+```{r}
+plotUMAP(sce, colour_by = "doublet_score")
+```
+
+## Summary
+
+### Output
+
+Save experiment object to disk:
+
+```{r}
+saveRDS(sce, file = "output/06-doublet-detection.rds" )
+```
+
+### Session
+
+Print session information:
+
+```{r}
+sessionInfo()
+```
