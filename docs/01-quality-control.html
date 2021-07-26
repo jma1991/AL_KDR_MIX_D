@@ -12,20 +12,34 @@
 <meta name="author" content="James Ashmore" />
 
 
-<title>Quality Control</title>
+<title>Quality control</title>
 
+<script src="site_libs/header-attrs-2.9/header-attrs.js"></script>
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
 <script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
 <link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
 
 <link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/master/img/reproducible.png">
 <!-- Add a small amount of space between sections. -->
@@ -35,12 +49,18 @@ div.section {
 }
 </style>
 
-<style type="text/css">code{white-space: pre;}</style>
+
+
 <style type="text/css">
-  pre:not([class]) {
-    background-color: white;
-  }
-</style>
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
 <script type="text/javascript">
 if (window.hljs) {
   hljs.configure({languages: []});
@@ -53,32 +73,7 @@ if (window.hljs) {
 
 
 
-<style type="text/css">
-h1 {
-  font-size: 34px;
-}
-h1.title {
-  font-size: 38px;
-}
-h2 {
-  font-size: 30px;
-}
-h3 {
-  font-size: 24px;
-}
-h4 {
-  font-size: 18px;
-}
-h5 {
-  font-size: 16px;
-}
-h6 {
-  font-size: 12px;
-}
-.table th:not([align]) {
-  text-align: left;
-}
-</style>
+
 
 
 
@@ -88,10 +83,6 @@ h6 {
   max-width: 940px;
   margin-left: auto;
   margin-right: auto;
-}
-code {
-  color: inherit;
-  background-color: rgba(0, 0, 0, 0.04);
 }
 img {
   max-width:100%;
@@ -108,40 +99,13 @@ button.code-folding-btn:focus {
 summary {
   display: list-item;
 }
+pre code {
+  padding: 0;
+}
 </style>
 
 
 <style type="text/css">
-/* padding for bootstrap navbar */
-body {
-  padding-top: 51px;
-  padding-bottom: 40px;
-}
-/* offset scroll position for anchor links (for fixed navbar)  */
-.section h1 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h2 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h3 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h4 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h5 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h6 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
 .dropdown-submenu {
   position: relative;
 }
@@ -169,7 +133,7 @@ body {
   margin-right: -10px;
 }
 .dropdown-submenu:hover>a:after {
-  border-left-color: #ffffff;
+  border-left-color: #adb5bd;
 }
 .dropdown-submenu.pull-left {
   float: none;
@@ -181,7 +145,7 @@ body {
 }
 </style>
 
-<script>
+<script type="text/javascript">
 // manage active state of menu based on current page
 $(document).ready(function () {
   // active menu anchor
@@ -192,10 +156,23 @@ $(document).ready(function () {
   var menuAnchor = $('a[href="' + href + '"]');
 
   // mark it active
-  menuAnchor.parent().addClass('active');
+  menuAnchor.tab('show');
 
   // if it's got a parent navbar menu mark it active as well
   menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
 });
 </script>
 
@@ -207,7 +184,6 @@ $(document).ready(function () {
   max-height: 500px;
   min-height: 44px;
   overflow-y: auto;
-  background: white;
   border: 1px solid #ddd;
   border-radius: 4px;
 }
@@ -333,7 +309,7 @@ div.tocify {
 
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
-<div class="row-fluid">
+<div class="row">
 <div class="col-xs-12 col-sm-4 col-md-3">
 <div id="TOC" class="tocify">
 </div>
@@ -362,31 +338,75 @@ div.tocify {
 <li>
   <a href="about.html">About</a>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Processing
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="01-quality-control.html">Quality control</a>
+    </li>
+    <li>
+      <a href="02-normalization.html">Normalization</a>
+    </li>
+    <li>
+      <a href="03-feature-selection.html">Feature selection</a>
+    </li>
+    <li>
+      <a href="04-reduced-dimensions.html">Dimensionality reduction</a>
+    </li>
+    <li>
+      <a href="05-clustering.html">Clustering</a>
+    </li>
+    <li>
+      <a href="06-doublet-detection.html">Doublet detection</a>
+    </li>
+    <li>
+      <a href="07-cell-cycle.html">Cell cycle assignment</a>
+    </li>
+    <li>
+      <a href="08-marker-detection.html">Marker gene detection</a>
+    </li>
+    <li>
+      <a href="09-cell-annotation.html">Cell type annotation</a>
+    </li>
+  </ul>
+</li>
 <li>
-  <a href="license.html">License</a>
+  <a href="interactive.html">Interactive</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        
+        <li>
+  <a href="license.html">License</a>
+</li>
+<li>
+  <a href="https://github.com/jma1991/AL_KDR_MIX_D">
+    <span class="fab fa-github"></span>
+     
+  </a>
+</li>
       </ul>
     </div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
-<div class="fluid-row" id="header">
+<div id="header">
 
 
 
-<h1 class="title toc-ignore">Quality Control</h1>
+<h1 class="title toc-ignore">Quality control</h1>
 <h4 class="author">James Ashmore</h4>
-<h4 class="date">05 June, 2020</h4>
+<h4 class="date">26 July, 2021</h4>
 
 </div>
 
 
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
-<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span>
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
 </button>
 </p>
 <div id="workflowr-report" class="collapse">
@@ -395,7 +415,7 @@ div.tocify {
 <a data-toggle="tab" href="#summary">Summary</a>
 </li>
 <li>
-<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> </a>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
 </li>
 <li>
 <a data-toggle="tab" href="#versions">Past versions</a>
@@ -404,10 +424,10 @@ div.tocify {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2020-06-05
+<strong>Last updated:</strong> 2021-07-26
 </p>
 <p>
-<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
 </p>
 <p>
 <strong>Knit directory:</strong> <code>AL_KDR_MIX_D/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
@@ -423,12 +443,12 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges"> <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted changes </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
 </p>
 </div>
-<div id="strongRMarkdownfilestronguncommittedchanges" class="panel-collapse collapse">
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown is untracked by Git. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
 </div>
 </div>
 </div>
@@ -452,7 +472,7 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 </div>
 <div id="strongSeedstrongcodesetseed20200510code" class="panel-collapse collapse">
 <div class="panel-body">
-<p>The command <code>set.seed(20200510)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+<p>The command <code>set.seed(20200510)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
 </div>
 </div>
 </div>
@@ -495,16 +515,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrong2f75d0a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> 2f75d0a </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjma1991ALKDRMIXDtree37c8df9ccbcf96fb41056061079f758eef628fectargetblank37c8df9a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jma1991/AL_KDR_MIX_D/tree/37c8df9ccbcf96fb41056061079f758eef628fec" target="_blank">37c8df9</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrong2f75d0a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjma1991ALKDRMIXDtree37c8df9ccbcf96fb41056061079f758eef628fectargetblank37c8df9a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version 2f75d0a. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jma1991/AL_KDR_MIX_D/tree/37c8df9ccbcf96fb41056061079f758eef628fec" target="_blank">37c8df9</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -516,21 +536,29 @@ Ignored files:
     Ignored:    .Rproj.user/
     Ignored:    analysis/.DS_Store
     Ignored:    analysis/.Rhistory
-    Ignored:    analysis/cache/
+    Ignored:    data/backup/
 
 Untracked files:
-    Untracked:  analysis/01-quality-control.Rmd
-    Untracked:  analysis/02-normalization.Rmd
-    Untracked:  analysis/03-feature-selection.Rmd
+    Untracked:  _workflowr.R
     Untracked:  analysis/04-reduced-dimensions.Rmd
     Untracked:  analysis/05-clustering.Rmd
     Untracked:  analysis/06-doublet-detection.Rmd
     Untracked:  analysis/07-cell-cycle.Rmd
     Untracked:  analysis/08-marker-detection.Rmd
     Untracked:  analysis/09-cell-annotation.Rmd
-    Untracked:  analysis/10-data-integration.Rmd
-    Untracked:  data/cell-markers.csv
-    Untracked:  data/salmon-quant.rds
+    Untracked:  analysis/backup/
+    Untracked:  analysis/interactive.Rmd
+    Untracked:  code/cleanEmbryoAtlasData.R
+    Untracked:  code/cleanSCE.R
+    Untracked:  code/splitByCol.R
+    Untracked:  renv.lock
+    Untracked:  renv/
+
+Unstaged changes:
+    Modified:   .Rprofile
+    Modified:   .gitignore
+    Modified:   _workflowr.yml
+    Modified:   analysis/_site.yml
 
 </code></pre>
 <p>
@@ -543,9 +571,69 @@ Note that any generated files, e.g. HTML, png, CSS, etc., are not included in t
 <hr>
 </div>
 <div id="versions" class="tab-pane fade">
+
 <p>
-There are no past versions. Publish this analysis with <code>wflow_publish()</code> to start tracking its development.
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/01-quality-control.Rmd</code>) and HTML (<code>docs/01-quality-control.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
 </p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jma1991/AL_KDR_MIX_D/eb398daa917269a7d64cf9aa69deece1096a6c84/docs/01-quality-control.html" target="_blank">eb398da</a>
+</td>
+<td>
+James Ashmore
+</td>
+<td>
+2021-07-26
+</td>
+<td>
+Build
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jma1991/AL_KDR_MIX_D/blob/6b5f9832eb5beaa1cf576fe554ff22386c996f44/analysis/01-quality-control.Rmd" target="_blank">6b5f983</a>
+</td>
+<td>
+James Ashmore
+</td>
+<td>
+2021-07-26
+</td>
+<td>
+Build
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 <hr>
 </div>
 </div>
@@ -566,20 +654,18 @@ There are no past versions. Publish this analysis with <code>wflow_publish()</co
   message    = FALSE,
   warning    = FALSE
 )</code></pre>
-<p>Load required packages:</p>
-<pre class="r"><code>library(BiocSingular)
-library(SingleCellExperiment)
-library(eulerr)
+<p>Load Bioconductor packages:</p>
+<pre class="r"><code>library(scater)
+library(scran)
+library(scuttle)</code></pre>
+<p>Load CRAN packages:</p>
+<pre class="r"><code>library(eulerr)
 library(patchwork)
-library(robustbase)
-library(scater)
-library(scran)</code></pre>
+library(robustbase)</code></pre>
 <p>Read experiment data:</p>
-<pre class="r"><code>sce &lt;- readRDS(&quot;data/salmon-quant.rds&quot;)</code></pre>
+<pre class="r"><code>sce &lt;- readRDS(&quot;data/salmon.rds&quot;)</code></pre>
 <p>Make feature names unique:</p>
 <pre class="r"><code>rownames(sce) &lt;- uniquifyFeatureNames(rowData(sce)$gene_id, rowData(sce)$gene_name)</code></pre>
-<p>Make sample names unique:</p>
-<pre class="r"><code>colnames(sce) &lt;- colData(sce)$sample</code></pre>
 </div>
 <div id="exploration" class="section level2">
 <h2>Exploration</h2>
@@ -592,34 +678,32 @@ library(scran)</code></pre>
 
 gfp &lt;- which(seqnames(sce) == &quot;EGFP&quot;)</code></pre>
 <p>Compute QC metrics for each cell:</p>
-<pre class="r"><code>sce &lt;- addPerCellQC(sce, subsets = list(MT = mit, EGFP = gfp))
-
-dat &lt;- as.data.frame(colData(sce))</code></pre>
+<pre class="r"><code>sce &lt;- addPerCellQC(sce, subsets = list(MT = mit, EGFP = gfp))</code></pre>
 <p>Inspect the distributions of QC metrics:</p>
 <pre class="r"><code>wrap_plots(
-  plotColData(sce, &quot;sum&quot;, colour_by = &quot;phenotype&quot;) + scale_y_log10() + ggtitle(&quot;Total count&quot;),
-  plotColData(sce, &quot;detected&quot;, colour_by = &quot;phenotype&quot;) + scale_y_log10() + ggtitle(&quot;Detected features&quot;),
-  plotColData(sce, &quot;subsets_MT_percent&quot;, colour_by = &quot;phenotype&quot;) + ggtitle(&quot;MT percent&quot;),
-  plotColData(sce, &quot;altexps_ERCC_percent&quot;, colour_by = &quot;phenotype&quot;) + ggtitle(&quot;ERCC percent&quot;)
+  plotColData(sce, &quot;sum&quot;) + scale_y_log10() + ggtitle(&quot;Total count&quot;),
+  plotColData(sce, &quot;detected&quot;) + scale_y_log10() + ggtitle(&quot;Detected features&quot;),
+  plotColData(sce, &quot;subsets_MT_percent&quot;) + ggtitle(&quot;MT percent&quot;),
+  plotColData(sce, &quot;altexps_ERCC_percent&quot;) + ggtitle(&quot;ERCC percent&quot;)
 )</code></pre>
 <p><img src="figure/01-quality-control.Rmd/unnamed-chunk-8-1.png" width="960" style="display: block; margin: auto;" /></p>
 <div id="dimensionality-reduction" class="section level3 tabset">
-<h3>Dimensionality reduction</h3>
-<p>Calculate dimenionality reduction data:</p>
-<pre class="r"><code>set.seed(797872284)
+<h3 class="tabset">Dimensionality reduction</h3>
+<p>Calculate dimensionality reduction data:</p>
+<pre class="r"><code>set.seed(0010000001)
 sce &lt;- computeLibraryFactors(sce)
 sce &lt;- logNormCounts(sce)
-sce &lt;- runPCA(sce, BSPARAM = ExactParam())
+sce &lt;- runPCA(sce, BSPARAM = BiocSingular::ExactParam())
 sce &lt;- runTSNE(sce, dimred = &quot;PCA&quot;)
 sce &lt;- runUMAP(sce, dimred = &quot;PCA&quot;)</code></pre>
 <p>Inspect dimensionality reduction plots:</p>
 <div id="pca" class="section level4">
 <h4>PCA</h4>
 <pre class="r"><code>patchwork::wrap_plots(
-  plotPCA(sce, colour_by = &quot;sum&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;Total count&quot;),
-  plotPCA(sce, colour_by = &quot;detected&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;Detected features&quot;),
-  plotPCA(sce, colour_by = &quot;subsets_MT_percent&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;MT percent&quot;),
-  plotPCA(sce, colour_by = &quot;altexps_ERCC_percent&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;ERCC percent&quot;),
+  plotPCA(sce, colour_by = &quot;sum&quot;) + ggtitle(&quot;Total count&quot;),
+  plotPCA(sce, colour_by = &quot;detected&quot;) + ggtitle(&quot;Detected features&quot;),
+  plotPCA(sce, colour_by = &quot;subsets_MT_percent&quot;) + ggtitle(&quot;MT percent&quot;),
+  plotPCA(sce, colour_by = &quot;altexps_ERCC_percent&quot;) + ggtitle(&quot;ERCC percent&quot;),
   ncol = 2
 )</code></pre>
 <p><img src="figure/01-quality-control.Rmd/unnamed-chunk-10-1.png" width="960" style="display: block; margin: auto;" /></p>
@@ -627,10 +711,10 @@ sce &lt;- runUMAP(sce, dimred = &quot;PCA&quot;)</code></pre>
 <div id="tsne" class="section level4">
 <h4>TSNE</h4>
 <pre class="r"><code>patchwork::wrap_plots(
-  plotTSNE(sce, colour_by = &quot;sum&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;Total count&quot;),
-  plotTSNE(sce, colour_by = &quot;detected&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;Detected features&quot;),
-  plotTSNE(sce, colour_by = &quot;subsets_MT_percent&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;MT percent&quot;),
-  plotTSNE(sce, colour_by = &quot;altexps_ERCC_percent&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;ERCC percent&quot;),
+  plotTSNE(sce, colour_by = &quot;sum&quot;) + ggtitle(&quot;Total count&quot;),
+  plotTSNE(sce, colour_by = &quot;detected&quot;) + ggtitle(&quot;Detected features&quot;),
+  plotTSNE(sce, colour_by = &quot;subsets_MT_percent&quot;) + ggtitle(&quot;MT percent&quot;),
+  plotTSNE(sce, colour_by = &quot;altexps_ERCC_percent&quot;) + ggtitle(&quot;ERCC percent&quot;),
   ncol = 2
 )</code></pre>
 <p><img src="figure/01-quality-control.Rmd/unnamed-chunk-11-1.png" width="960" style="display: block; margin: auto;" /></p>
@@ -638,10 +722,10 @@ sce &lt;- runUMAP(sce, dimred = &quot;PCA&quot;)</code></pre>
 <div id="umap" class="section level4">
 <h4>UMAP</h4>
 <pre class="r"><code>patchwork::wrap_plots(
-  plotUMAP(sce, colour_by = &quot;sum&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;Total count&quot;),
-  plotUMAP(sce, colour_by = &quot;detected&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;Detected features&quot;),
-  plotUMAP(sce, colour_by = &quot;subsets_MT_percent&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;MT percent&quot;),
-  plotUMAP(sce, colour_by = &quot;altexps_ERCC_percent&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;ERCC percent&quot;),
+  plotUMAP(sce, colour_by = &quot;sum&quot;) + ggtitle(&quot;Total count&quot;),
+  plotUMAP(sce, colour_by = &quot;detected&quot;) + ggtitle(&quot;Detected features&quot;),
+  plotUMAP(sce, colour_by = &quot;subsets_MT_percent&quot;) + ggtitle(&quot;MT percent&quot;),
+  plotUMAP(sce, colour_by = &quot;altexps_ERCC_percent&quot;) + ggtitle(&quot;ERCC percent&quot;),
   ncol = 2
 )</code></pre>
 <p><img src="figure/01-quality-control.Rmd/unnamed-chunk-12-1.png" width="960" style="display: block; margin: auto;" /></p>
@@ -652,22 +736,22 @@ sce &lt;- runUMAP(sce, dimred = &quot;PCA&quot;)</code></pre>
 <h2>Cell Filtering</h2>
 <p>We will now perform filtering to remove low-quality cells:</p>
 <div id="manual-threshold" class="section level3 tabset">
-<h3>Manual threshold</h3>
+<h3 class="tabset">Manual threshold</h3>
 <p>The first approach to identifying low-quality cells is to apply manual thresholds on the QC metrics:</p>
 <pre class="r"><code>dat &lt;- DataFrame(
   low_lib_size = sce$sum &lt; 100000,
-  low_n_features = sce$detected &lt; 3000,
-  high_subsets_MT_percent = sce$subsets_MT_percent &gt; 4,
-  high_altexps_ERCC_percent = sce$altexps_ERCC_percent &gt; 1
+  low_n_features = sce$detected &lt; 5000,
+  high_subsets_MT_percent = sce$subsets_MT_percent &gt; 5,
+  high_altexps_ERCC_percent = sce$altexps_ERCC_percent &gt; 5
 )
 
 sce$manual_discard &lt;- dat$low_lib_size | dat$low_n_features | dat$high_subsets_MT_percent | dat$high_altexps_ERCC_percent</code></pre>
 <p>Inspect distribution of QC metrics:</p>
 <pre class="r"><code>wrap_plots(
-  plotColData(sce, &quot;sum&quot;, colour_by = &quot;manual_discard&quot;, shape_by = &quot;phenotype&quot;) + scale_y_log10() + ggtitle(&quot;Total count&quot;),
-  plotColData(sce, &quot;detected&quot;, colour_by = &quot;manual_discard&quot;, shape_by = &quot;phenotype&quot;) + scale_y_log10() + ggtitle(&quot;Detected features&quot;),
-  plotColData(sce, &quot;subsets_MT_percent&quot;, colour_by = &quot;manual_discard&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;MT percent&quot;),
-  plotColData(sce, &quot;altexps_ERCC_percent&quot;, colour_by = &quot;manual_discard&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;ERCC percent&quot;)
+  plotColData(sce, &quot;sum&quot;, colour_by = &quot;manual_discard&quot;) + scale_y_log10() + ggtitle(&quot;Total count&quot;),
+  plotColData(sce, &quot;detected&quot;, colour_by = &quot;manual_discard&quot;) + scale_y_log10() + ggtitle(&quot;Detected features&quot;),
+  plotColData(sce, &quot;subsets_MT_percent&quot;, colour_by = &quot;manual_discard&quot;) + ggtitle(&quot;MT percent&quot;),
+  plotColData(sce, &quot;altexps_ERCC_percent&quot;, colour_by = &quot;manual_discard&quot;) + ggtitle(&quot;ERCC percent&quot;)
 )</code></pre>
 <p><img src="figure/01-quality-control.Rmd/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Inspect dimensionality reduction plots:</p>
@@ -706,17 +790,17 @@ sce$manual_discard &lt;- dat$low_lib_size | dat$low_n_features | dat$high_subset
 </div>
 </div>
 <div id="adaptive-threshold" class="section level3 tabset">
-<h3>Adaptive threshold</h3>
+<h3 class="tabset">Adaptive threshold</h3>
 <p>The next approach is to identify cells that are outliers based on the median absolute deviation for the QC metrics:</p>
-<pre class="r"><code>dat &lt;- quickPerCellQC(sce, percent_subsets = c(&quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;), batch = sce$phenotype)
+<pre class="r"><code>dat &lt;- quickPerCellQC(colData(sce), sub.fields = c(&quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;))
 
 sce$adaptive_discard &lt;- dat$discard</code></pre>
 <p>Inspect distribution of QC metrics:</p>
 <pre class="r"><code>wrap_plots(
-  plotColData(sce, &quot;sum&quot;, colour_by = &quot;adaptive_discard&quot;, shape_by = &quot;phenotype&quot;) + scale_y_log10() + ggtitle(&quot;Total count&quot;),
-  plotColData(sce, &quot;detected&quot;, colour_by = &quot;adaptive_discard&quot;, shape_by = &quot;phenotype&quot;) + scale_y_log10() + ggtitle(&quot;Detected features&quot;),
-  plotColData(sce, &quot;subsets_MT_percent&quot;, colour_by = &quot;adaptive_discard&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;MT percent&quot;),
-  plotColData(sce, &quot;altexps_ERCC_percent&quot;, colour_by = &quot;adaptive_discard&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;ERCC percent&quot;)
+  plotColData(sce, &quot;sum&quot;, colour_by = &quot;adaptive_discard&quot;) + scale_y_log10() + ggtitle(&quot;Total count&quot;),
+  plotColData(sce, &quot;detected&quot;, colour_by = &quot;adaptive_discard&quot;) + scale_y_log10() + ggtitle(&quot;Detected features&quot;),
+  plotColData(sce, &quot;subsets_MT_percent&quot;, colour_by = &quot;adaptive_discard&quot;) + ggtitle(&quot;MT percent&quot;),
+  plotColData(sce, &quot;altexps_ERCC_percent&quot;, colour_by = &quot;adaptive_discard&quot;) + ggtitle(&quot;ERCC percent&quot;)
 )</code></pre>
 <p><img src="figure/01-quality-control.Rmd/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Inspect dimensionality reduction plots:</p>
@@ -755,18 +839,18 @@ sce$adaptive_discard &lt;- dat$discard</code></pre>
 </div>
 </div>
 <div id="outlier-threshold" class="section level3 tabset">
-<h3>Outlier threshold</h3>
+<h3 class="tabset">Outlier threshold</h3>
 <p>The last approach is to identify outliers in high-dimensional space based on the QC metrics for each cell:</p>
 <pre class="r"><code>mat &lt;- cbind(log10(sce$sum), log10(sce$detected), sce$subsets_MT_percent, sce$altexps_ERCC_percent)
 adj &lt;- adjOutlyingness(mat, only.outlyingness = TRUE)
-out &lt;- isOutlier(adj, type = &quot;higher&quot;, batch = sce$phenotype)
+out &lt;- isOutlier(adj, type = &quot;higher&quot;)
 sce$outlier_discard &lt;- out</code></pre>
 <p>Inspect distribution of QC metrics:</p>
 <pre class="r"><code>wrap_plots(
-  plotColData(sce, &quot;sum&quot;, colour_by = &quot;outlier_discard&quot;, shape_by = &quot;phenotype&quot;) + scale_y_log10() + ggtitle(&quot;Total count&quot;),
-  plotColData(sce, &quot;detected&quot;, colour_by = &quot;outlier_discard&quot;, shape_by = &quot;phenotype&quot;) + scale_y_log10() + ggtitle(&quot;Detected features&quot;),
-  plotColData(sce, &quot;subsets_MT_percent&quot;, colour_by = &quot;outlier_discard&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;MT percent&quot;),
-  plotColData(sce, &quot;altexps_ERCC_percent&quot;, colour_by = &quot;outlier_discard&quot;, shape_by = &quot;phenotype&quot;) + ggtitle(&quot;ERCC percent&quot;)
+  plotColData(sce, &quot;sum&quot;, colour_by = &quot;outlier_discard&quot;) + scale_y_log10() + ggtitle(&quot;Total count&quot;),
+  plotColData(sce, &quot;detected&quot;, colour_by = &quot;outlier_discard&quot;) + scale_y_log10() + ggtitle(&quot;Detected features&quot;),
+  plotColData(sce, &quot;subsets_MT_percent&quot;, colour_by = &quot;outlier_discard&quot;) + ggtitle(&quot;MT percent&quot;),
+  plotColData(sce, &quot;altexps_ERCC_percent&quot;, colour_by = &quot;outlier_discard&quot;) + ggtitle(&quot;ERCC percent&quot;)
 )</code></pre>
 <p><img src="figure/01-quality-control.Rmd/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Inspect dimensionality reduction plots:</p>
@@ -817,10 +901,6 @@ plot(fit, fill = col, quantities = TRUE)</code></pre>
 <h3>Selection</h3>
 <p>We are going to use the adaptive filtering to remove low quality cells:</p>
 <pre class="r"><code>sce &lt;- sce[, !sce$adaptive_discard]</code></pre>
-<p>Additionally, we are going to select cells with at least 1 ERCC read count:</p>
-<pre class="r"><code>idx &lt;- which(sce$altexps_ERCC_detected &gt; 0)
-
-sce &lt;- sce[, idx]</code></pre>
 </div>
 </div>
 <div id="gene-filtering" class="section level2">
@@ -836,7 +916,7 @@ dat &lt;- as.data.frame(rowData(sce))</code></pre>
   geom_histogram(bins = 100, colour = &quot;black&quot;, fill = &quot;grey&quot;) + 
   scale_x_log10(n.breaks = 10) +
   theme_bw()</code></pre>
-<p><img src="figure/01-quality-control.Rmd/unnamed-chunk-32-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/01-quality-control.Rmd/unnamed-chunk-31-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Define lowly expressed genes using a mean threshold:</p>
 <pre class="r"><code>dat$low_mean &lt;- dat$mean &lt; 1</code></pre>
 <p>Tabulate the number of lowly expressed genes:</p>
@@ -851,11 +931,11 @@ dat &lt;- as.data.frame(rowData(sce))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left">FALSE</td>
-<td align="right">12519</td>
+<td align="right">12741</td>
 </tr>
 <tr class="even">
 <td align="left">TRUE</td>
-<td align="right">42953</td>
+<td align="right">42731</td>
 </tr>
 </tbody>
 </table>
@@ -868,7 +948,7 @@ dat &lt;- as.data.frame(rowData(sce))</code></pre>
   geom_smooth(colour = &quot;black&quot;, se = FALSE) +
   scale_x_log10(n.breaks = 10) +
   theme_bw()</code></pre>
-<p><img src="figure/01-quality-control.Rmd/unnamed-chunk-35-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/01-quality-control.Rmd/unnamed-chunk-34-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Define lowly detected genes as having a minimum of 1 read in at least 1 percent of cells:</p>
 <pre class="r"><code>dat$low_detected &lt;- !rowSums(counts(sce) &gt;= 1) &gt;= (ncol(sce) * 0.01)</code></pre>
 <p>Tabulate the number of lowly detected genes:</p>
@@ -883,11 +963,11 @@ dat &lt;- as.data.frame(rowData(sce))</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left">FALSE</td>
-<td align="right">21078</td>
+<td align="right">20977</td>
 </tr>
 <tr class="even">
 <td align="left">TRUE</td>
-<td align="right">34394</td>
+<td align="right">34495</td>
 </tr>
 </tbody>
 </table>
@@ -899,7 +979,7 @@ dat &lt;- as.data.frame(rowData(sce))</code></pre>
 fit &lt;- euler(mat, shape = &quot;circle&quot;)
 col &lt;- RColorBrewer::brewer.pal(n = 3, name = &quot;Pastel2&quot;)
 plot(fit, fill = col, quantities = TRUE)</code></pre>
-<p><img src="figure/01-quality-control.Rmd/unnamed-chunk-38-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/01-quality-control.Rmd/unnamed-chunk-37-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="selection-1" class="section level3">
 <h3>Selection</h3>
@@ -909,74 +989,90 @@ plot(fit, fill = col, quantities = TRUE)</code></pre>
 </div>
 <div id="summary" class="section level2">
 <h2>Summary</h2>
-<p>After quality control we have a dataset with 67 cells and 55472 genes.</p>
+<p>After quality control we have a dataset with 61 cells and 55472 genes.</p>
 <div id="output" class="section level3">
 <h3>Output</h3>
-<pre class="r"><code>saveRDS(sce, &quot;data/01-quality-control.rds&quot;)</code></pre>
-<br>
-<p>
-<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
-<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
-</button>
-</p>
-<div id="workflowr-sessioninfo" class="collapse">
+<p>Save experiment object to disk:</p>
+<pre class="r"><code>saveRDS(sce, &quot;output/01-quality-control.rds&quot;)</code></pre>
+</div>
+<div id="session" class="section level3">
+<h3>Session</h3>
+<p>Print session information:</p>
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>R version 3.6.3 (2020-02-29)
-Platform: x86_64-apple-darwin15.6.0 (64-bit)
-Running under: macOS Catalina 10.15.5
+<pre><code>R version 4.0.2 (2020-06-22)
+Platform: x86_64-apple-darwin17.0 (64-bit)
+Running under: macOS Catalina 10.15.7
 
 Matrix products: default
-BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
-LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
+BLAS:   /Library/Frameworks/R.framework/Versions/4.0/Resources/lib/libRblas.dylib
+LAPACK: /Library/Frameworks/R.framework/Versions/4.0/Resources/lib/libRlapack.dylib
 
 locale:
 [1] en_GB.UTF-8/en_GB.UTF-8/en_GB.UTF-8/C/en_GB.UTF-8/en_GB.UTF-8
 
 attached base packages:
-[1] parallel  stats4    stats     graphics  grDevices utils     datasets 
+[1] parallel  stats4    stats     graphics  grDevices datasets  utils    
 [8] methods   base     
 
 other attached packages:
- [1] scran_1.14.6                scater_1.14.6              
- [3] ggplot2_3.3.0               robustbase_0.93-6          
- [5] patchwork_1.0.0             eulerr_6.1.0               
- [7] SingleCellExperiment_1.8.0  SummarizedExperiment_1.16.1
- [9] DelayedArray_0.12.3         BiocParallel_1.20.1        
-[11] matrixStats_0.56.0          Biobase_2.46.0             
-[13] GenomicRanges_1.38.0        GenomeInfoDb_1.22.1        
-[15] IRanges_2.20.2              S4Vectors_0.24.4           
-[17] BiocGenerics_0.32.0         BiocSingular_1.2.2         
-[19] workflowr_1.6.2            
+ [1] robustbase_0.93-8           patchwork_1.1.1            
+ [3] eulerr_6.1.0                scuttle_1.0.4              
+ [5] scran_1.18.7                scater_1.18.6              
+ [7] ggplot2_3.3.5               SingleCellExperiment_1.12.0
+ [9] SummarizedExperiment_1.20.0 Biobase_2.50.0             
+[11] GenomicRanges_1.42.0        GenomeInfoDb_1.26.7        
+[13] IRanges_2.24.1              S4Vectors_0.28.1           
+[15] BiocGenerics_0.36.1         MatrixGenerics_1.2.1       
+[17] matrixStats_0.59.0          workflowr_1.6.2            
 
 loaded via a namespace (and not attached):
- [1] nlme_3.1-147             bitops_1.0-6             fs_1.4.1                
- [4] RColorBrewer_1.1-2       rprojroot_1.3-2          tools_3.6.3             
- [7] backports_1.1.7          R6_2.4.1                 irlba_2.3.3             
-[10] vipor_0.4.5              mgcv_1.8-31              uwot_0.1.8              
-[13] colorspace_1.4-1         withr_2.2.0              tidyselect_1.1.0        
-[16] gridExtra_2.3            compiler_3.6.3           git2r_0.27.1            
-[19] BiocNeighbors_1.4.2      labeling_0.3             scales_1.1.1            
-[22] DEoptimR_1.0-8           stringr_1.4.0            digest_0.6.25           
-[25] rmarkdown_2.1            XVector_0.26.0           pkgconfig_2.0.3         
-[28] htmltools_0.4.0          limma_3.42.2             highr_0.8               
-[31] rlang_0.4.6              FNN_1.1.3                DelayedMatrixStats_1.8.0
-[34] farver_2.0.3             dplyr_0.8.5              RCurl_1.98-1.2          
-[37] magrittr_1.5             GenomeInfoDbData_1.2.2   Matrix_1.2-18           
-[40] Rcpp_1.0.4               ggbeeswarm_0.6.0         munsell_0.5.0           
-[43] viridis_0.5.1            lifecycle_0.2.0          stringi_1.4.6           
-[46] yaml_2.2.1               edgeR_3.28.1             zlibbioc_1.32.0         
-[49] Rtsne_0.15               grid_3.6.3               promises_1.1.0          
-[52] dqrng_0.2.1              crayon_1.3.4             lattice_0.20-41         
-[55] splines_3.6.3            cowplot_1.0.0            polylabelr_0.2.0        
-[58] locfit_1.5-9.4           knitr_1.28               pillar_1.4.4            
-[61] igraph_1.2.5             codetools_0.2-16         glue_1.4.1              
-[64] evaluate_0.14            vctrs_0.3.0              httpuv_1.5.2            
-[67] gtable_0.3.0             purrr_0.3.4              polyclip_1.10-0         
-[70] assertthat_0.2.1         xfun_0.14                rsvd_1.0.3              
-[73] RSpectra_0.16-0          later_1.0.0              viridisLite_0.3.0       
-[76] tibble_3.0.1             beeswarm_0.2.3           statmod_1.4.34          
-[79] ellipsis_0.3.1          </code></pre>
-</div>
+ [1] nlme_3.1-152              bitops_1.0-7             
+ [3] fs_1.5.0                  RColorBrewer_1.1-2       
+ [5] rprojroot_2.0.2           tools_4.0.2              
+ [7] bslib_0.2.5.1             utf8_1.2.1               
+ [9] R6_2.5.0                  irlba_2.3.3              
+[11] vipor_0.4.5               mgcv_1.8-36              
+[13] uwot_0.1.10               DBI_1.1.1                
+[15] colorspace_2.0-2          withr_2.4.2              
+[17] tidyselect_1.1.1          gridExtra_2.3            
+[19] compiler_4.0.2            git2r_0.28.0             
+[21] BiocNeighbors_1.8.2       DelayedArray_0.16.3      
+[23] labeling_0.4.2            sass_0.4.0               
+[25] scales_1.1.1              DEoptimR_1.0-9           
+[27] stringr_1.4.0             digest_0.6.27            
+[29] rmarkdown_2.9             XVector_0.30.0           
+[31] pkgconfig_2.0.3           htmltools_0.5.1.1        
+[33] sparseMatrixStats_1.2.1   highr_0.9                
+[35] limma_3.46.0              rlang_0.4.11             
+[37] FNN_1.1.3                 DelayedMatrixStats_1.12.3
+[39] farver_2.1.0              jquerylib_0.1.4          
+[41] generics_0.1.0            jsonlite_1.7.2           
+[43] BiocParallel_1.24.1       dplyr_1.0.7              
+[45] RCurl_1.98-1.3            magrittr_2.0.1           
+[47] BiocSingular_1.6.0        GenomeInfoDbData_1.2.4   
+[49] Matrix_1.3-4              Rcpp_1.0.6               
+[51] ggbeeswarm_0.6.0          munsell_0.5.0            
+[53] fansi_0.5.0               viridis_0.6.1            
+[55] lifecycle_1.0.0           stringi_1.6.2            
+[57] whisker_0.4               yaml_2.2.1               
+[59] edgeR_3.32.1              zlibbioc_1.36.0          
+[61] Rtsne_0.15                grid_4.0.2               
+[63] promises_1.2.0.1          dqrng_0.3.0              
+[65] crayon_1.4.1              lattice_0.20-44          
+[67] splines_4.0.2             cowplot_1.1.1            
+[69] beachmat_2.6.4            polylabelr_0.2.0         
+[71] locfit_1.5-9.4            knitr_1.33               
+[73] pillar_1.6.1              igraph_1.2.6             
+[75] codetools_0.2-18          glue_1.4.2               
+[77] evaluate_0.14             renv_0.13.2              
+[79] vctrs_0.3.8               httpuv_1.6.1             
+[81] polyclip_1.10-0           gtable_0.3.0             
+[83] purrr_0.3.4               assertthat_0.2.1         
+[85] xfun_0.24                 rsvd_1.0.5               
+[87] RSpectra_0.16-0           later_1.2.0              
+[89] viridisLite_0.4.0         tibble_3.1.2             
+[91] beeswarm_0.4.0            bluster_1.0.0            
+[93] statmod_1.4.36            ellipsis_0.3.2           </code></pre>
 </div>
 </div>
 
@@ -994,6 +1090,8 @@ footer is added to webpages before the MathJax javascript. -->
 </script>
 
 
+
+
 </div>
 </div>
 
@@ -1003,7 +1101,7 @@ footer is added to webpages before the MathJax javascript. -->
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();
@@ -1021,7 +1119,7 @@ $(document).ready(function () {
 
 $(document).ready(function () {
   $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
+    $(this).parent().toggleClass('nav-tabs-open');
   });
 });
 </script>
@@ -1030,6 +1128,9 @@ $(document).ready(function () {
 
 <script>
 $(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
 
     // move toc-ignore selectors from section div to header
     $('div.section.toc-ignore')
@@ -1042,7 +1143,7 @@ $(document).ready(function ()  {
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
       },
       ignoreSelector: ".toc-ignore",
       scrollTo: 0
