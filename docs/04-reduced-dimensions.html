@@ -12,7 +12,7 @@
 <meta name="author" content="James Ashmore" />
 
 
-<title>Normalization</title>
+<title>Dimensionality reduction</title>
 
 <script src="site_libs/header-attrs-2.9/header-attrs.js"></script>
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
@@ -397,7 +397,7 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Normalization</h1>
+<h1 class="title toc-ignore">Dimensionality reduction</h1>
 <h4 class="author">James Ashmore</h4>
 <h4 class="date">26 July, 2021</h4>
 
@@ -568,7 +568,7 @@ Note that any generated files, e.g. HTML, png, CSS, etc., are not included in t
 <div id="versions" class="tab-pane fade">
 
 <p>
-These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/02-normalization.Rmd</code>) and HTML (<code>docs/02-normalization.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/04-reduced-dimensions.Rmd</code>) and HTML (<code>docs/04-reduced-dimensions.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
 </p>
 <div class="table-responsive">
 <table class="table table-condensed table-hover">
@@ -594,44 +594,10 @@ Message
 <tbody>
 <tr>
 <td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jma1991/AL_KDR_MIX_D/a4cf4a53fa688c963aadf5e6dd0361e2f3f0cf15/docs/02-normalization.html" target="_blank">a4cf4a5</a>
-</td>
-<td>
-James Ashmore
-</td>
-<td>
-2021-07-26
-</td>
-<td>
-Build
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jma1991/AL_KDR_MIX_D/eb398daa917269a7d64cf9aa69deece1096a6c84/docs/02-normalization.html" target="_blank">eb398da</a>
-</td>
-<td>
-James Ashmore
-</td>
-<td>
-2021-07-26
-</td>
-<td>
-Build
-</td>
-</tr>
-<tr>
-<td>
 Rmd
 </td>
 <td>
-<a href="https://github.com/jma1991/AL_KDR_MIX_D/blob/6b5f9832eb5beaa1cf576fe554ff22386c996f44/analysis/02-normalization.Rmd" target="_blank">6b5f983</a>
+<a href="https://github.com/jma1991/AL_KDR_MIX_D/blob/ee46b4ce45228cd55cadc69d21b307619dc98f63/analysis/04-reduced-dimensions.Rmd" target="_blank">ee46b4c</a>
 </td>
 <td>
 James Ashmore
@@ -650,9 +616,9 @@ Build
 </div>
 </div>
 </div>
-<div id="introduction" class="section level2">
-<h2>Introduction</h2>
-<p>In this document we are going to compute normalized expression values.</p>
+<div id="motivation" class="section level2">
+<h2>Motivation</h2>
+<p>In this document we aim to reduce the number of separate dimensions in the data by performing dimenstionality reduction.</p>
 </div>
 <div id="setup" class="section level2">
 <h2>Setup</h2>
@@ -660,287 +626,241 @@ Build
 <pre class="r"><code>knitr::opts_chunk$set(
   autodep    = TRUE,
   cache      = TRUE,
-  cache.path = &quot;cache/02-normalization.Rmd/&quot;,
+  cache.path = &quot;cache/04-reduced-dimensions.Rmd/&quot;,
   dev        = &quot;png&quot;,
   error      = FALSE,
   message    = FALSE,
   warning    = FALSE
 )</code></pre>
-<p>Load required packages:</p>
+<p>Load Bioconductor packages:</p>
 <pre class="r"><code>library(BiocSingular)
-library(SingleCellExperiment)
-library(patchwork)
-library(robustbase)
 library(scater)
 library(scran)</code></pre>
+<p>Load CRAN packages:</p>
+<pre class="r"><code>library(patchwork)
+library(pheatmap)</code></pre>
 <p>Read experiment data:</p>
-<pre class="r"><code>sce &lt;- readRDS(&quot;output/01-quality-control.rds&quot;)</code></pre>
-<p>Filter lowly detected and expressed genes:</p>
-<pre class="r"><code>nan &lt;- rowData(sce)$low_mean | rowData(sce)$low_detected</code></pre>
+<pre class="r"><code>sce &lt;- readRDS(&quot;output/03-feature-selection.rds&quot;)</code></pre>
 </div>
-<div id="methods" class="section level2">
-<h2>Methods</h2>
-<p>Evaluate different normalization methods</p>
-<div id="raw" class="section level3 tabset">
-<h3 class="tabset">Raw</h3>
-<p>Compute expression values from raw counts without any normalization:</p>
-<pre class="r"><code>set.seed(1101100100)
+<div id="pca" class="section level2">
+<h2>PCA</h2>
+<div id="calculate-pca" class="section level3">
+<h3>Calculate PCA</h3>
+<p>Perform a principal components analysis (PCA) on the expression data:</p>
+<pre class="r"><code>set.seed(1000100100)
 
-sizeFactors(sce) &lt;- 1
+sce &lt;- runPCA(sce, subset_row = rowData(sce)$selected, BSPARAM = ExactParam())</code></pre>
+<p>Cluster cells to help examine separation of clusters by principal components:</p>
+<pre class="r"><code>snn &lt;- buildSNNGraph(sce, use.dimred = &quot;PCA&quot;)
 
-sce &lt;- logNormCounts(sce)
+com &lt;- igraph::cluster_walktrap(snn)
 
-sce &lt;- runPCA(sce, BSPARAM = ExactParam())
+sce$cluster &lt;- factor(com$membership)</code></pre>
+</div>
+<div id="find-elbow" class="section level3">
+<h3>Find elbow</h3>
+<p>Find the elbow point in the percentage of variance explained by successive PCs:</p>
+<pre class="r"><code>dim &lt;- reducedDim(sce, &quot;PCA&quot;)
 
-sce &lt;- runTSNE(sce, dimred = &quot;PCA&quot;)
+var &lt;- attr(dim, &quot;percentVar&quot;)
 
-sce &lt;- runUMAP(sce, dimred = &quot;PCA&quot;)</code></pre>
-<p>Inspect relative log expression plots coloured by column data:</p>
-<pre class="r"><code>plotRLE(sce[!nan, ])</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-6-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p>Inspect dimensionality reduction plots coloured by QC metrics:</p>
-<div id="pca" class="section level4">
-<h4>PCA</h4>
+num &lt;- RclusTool::ElbowFinder(seq_along(var), var)</code></pre>
+<p>Plot the percentage of variance explained by successive PCs:</p>
+<pre class="r"><code>dat &lt;- data.frame(index = seq_along(var), total = var)
+
+ggplot(dat, aes(index, total)) +
+  geom_point() +
+  geom_vline(xintercept = num, colour = &quot;red&quot;) +
+  labs(x = &quot;PC&quot;, y = &quot;Variance (%)&quot;) + 
+  scale_x_continuous(n.breaks = 10, limits = c(0, NA)) +
+  scale_y_continuous(n.breaks = 10, limits = c(0, NA)) +
+  theme_minimal()</code></pre>
+<p><img src="figure/04-reduced-dimensions.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="technical" class="section level3">
+<h3>Technical</h3>
+<p>Retain all PCs until the percentage of total variation explained reaches a given threshold based on the technical noise:</p>
+<pre class="r"><code>set.seed(0000010110)
+
+dec &lt;- metadata(sce)$modelGeneVarWithSpikes
+
+hvg &lt;- rowData(sce)$selected
+
+dim &lt;- reducedDim(denoisePCA(sce, technical = dec, subset.row = hvg, BSPARAM = ExactParam()))
+
+var &lt;- attr(dim, &quot;percentVar&quot;)
+
+num &lt;- ncol(dim)</code></pre>
+<p>Plot the cumulative percentage of variance explained by successive PCs:</p>
+<pre class="r"><code>dat &lt;- data.frame(index = seq_along(var), total = cumsum(var))
+
+ggplot(dat, aes(index, total)) +
+  geom_point() +
+  geom_vline(xintercept = num, colour = &quot;red&quot;) +
+  labs(x = &quot;PC&quot;, y = &quot;Cumulative variance (%)&quot;) +
+  theme_minimal()</code></pre>
+<p><img src="figure/04-reduced-dimensions.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="structure" class="section level3">
+<h3>Structure</h3>
+<p>Find the number of subpopulations in the data using clustering:</p>
+<pre class="r"><code>dim &lt;- reducedDim(sce, &quot;PCA&quot;)
+
+fit &lt;- getClusteredPCs(dim, min.rank = 1, max.rank = ncol(dim))
+
+num &lt;- metadata(fit)$chosen</code></pre>
+<p>Plot the percentage of variance explained by successive PCs:</p>
+<pre class="r"><code>dat &lt;- as.data.frame(fit)
+
+ggplot(dat, aes(n.pcs, n.clusters)) +
+  geom_point() + 
+  geom_abline(slope = 1, intercept = 1, colour = &quot;red&quot;) + 
+  geom_vline(xintercept = num, colour = &quot;grey&quot;, linetype = &quot;dashed&quot;) +
+  labs(x = &quot;PC&quot;, y = &quot;Number of clusters&quot;) +
+  theme_minimal()</code></pre>
+<p><img src="figure/04-reduced-dimensions.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="selection" class="section level3">
+<h3>Selection</h3>
+<p>Choose number of PCs to retain from the above analyses:</p>
+<pre class="r"><code>num &lt;- 5
+
+len &lt;- seq_len(num)
+
+dim &lt;- reducedDim(sce, &quot;PCA&quot;)
+
+reducedDim(sce, &quot;PCA&quot;) &lt;- dim[, len]</code></pre>
+<p>Plot scatterplot matrix of retained PCs:</p>
+<pre class="r"><code>plotPCA(sce, colour_by = &quot;cluster&quot;, ncomponents = num) + theme(legend.position = &quot;none&quot;)</code></pre>
+<p><img src="figure/04-reduced-dimensions.Rmd/unnamed-chunk-14-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p>Cluster cells to help examine effect of TSNE and UMAP hyper-parameters:</p>
+<pre class="r"><code>snn &lt;- buildSNNGraph(sce, use.dimred = &quot;PCA&quot;)
+
+com &lt;- igraph::cluster_walktrap(snn)
+
+sce$cluster &lt;- factor(com$membership)</code></pre>
+</div>
+</div>
+<div id="tsne" class="section level2">
+<h2>TSNE</h2>
+<p>Perform t-stochastic neighbour embedding (t-SNE) on the PCA data.</p>
+<div id="parameter-exploration" class="section level3">
+<h3>Parameter exploration</h3>
+<p>Inspect TSNE plots generated by different perplexity and iteration parameters:</p>
+<pre class="r"><code>lim &lt;- (ncol(sce) - 1) / 3
+
+max &lt;- ifelse(lim &lt; 50, lim, 50)
+
+per &lt;- seq(5, max, length.out = 6)
+
+itr &lt;- seq(500, 1500, length.out = 6)
+
+arg &lt;- expand.grid(
+  perplexity = floor(per),
+  max_iter = floor(itr)
+)
+
+plt &lt;- apply(arg, 1, function(x) {
+
+  set.seed(1101110100)
+
+  run &lt;- runTSNE(sce, dimred = &quot;PCA&quot;, perplexity = x[1], max_iter = x[2])
+
+  txt &lt;- paste(x[1], x[2], sep = &quot;/&quot;)
+
+  plotTSNE(run, colour_by = &quot;cluster&quot;) + ggtitle(txt) + 
+    theme(aspect.ratio = 1, axis.title = element_blank(), legend.position = &quot;none&quot;)
+
+})
+
+wrap_plots(plt, nrow = 6, ncol = 6, byrow = FALSE)</code></pre>
+<p><img src="figure/04-reduced-dimensions.Rmd/unnamed-chunk-16-1.png" width="960" style="display: block; margin: auto;" /></p>
+</div>
+<div id="calculate-tsne" class="section level3">
+<h3>Calculate TSNE</h3>
+<p>Select optimal perplexity value and number of iterations:</p>
+<pre class="r"><code>set.seed(1101110100)
+
+sce &lt;- runTSNE(sce, dimred = &quot;PCA&quot;, perplexity = 14, max_iter = 1500)</code></pre>
+</div>
+</div>
+<div id="umap" class="section level2">
+<h2>UMAP</h2>
+<p>Perform uniform manifold approximation and projection (UMAP) on the PCA data.</p>
+<div id="parameter-exploration-1" class="section level3">
+<h3>Parameter exploration</h3>
+<p>Inspect UMAP plots generated by different neighbors and distance parameters:</p>
+<pre class="r"><code>max &lt;- ifelse(ncol(sce) &lt; 100, ncol(sce), 100)
+
+num &lt;- seq(2, max, length.out = 6)
+
+dst &lt;- seq(0, 01, length.out = 6)
+
+arg &lt;- expand.grid(
+  n_neighbors = floor(num),
+  min_dist = signif(dst, digits = 2)
+)
+
+plt &lt;- apply(arg, 1, function(x) {
+
+  set.seed(0010011101)
+
+  run &lt;- runUMAP(sce, dimred = &quot;PCA&quot;, n_neighbors = x[1], min_dist = x[2])
+
+  txt &lt;- paste(x[1], x[2], sep = &quot;/&quot;)
+
+  plotUMAP(run, colour_by = &quot;cluster&quot;) + ggtitle(txt) + 
+    theme(aspect.ratio = 1, axis.title = element_blank(), legend.position = &quot;none&quot;)
+
+})
+
+wrap_plots(plt, nrow = 6, ncol = 6, byrow = FALSE)</code></pre>
+<p><img src="figure/04-reduced-dimensions.Rmd/unnamed-chunk-18-1.png" width="960" style="display: block; margin: auto;" /></p>
+</div>
+<div id="calculate-umap" class="section level3">
+<h3>Calculate UMAP</h3>
+<p>Select optimal number of nearest neighbors:</p>
+<pre class="r"><code>set.seed(0010011101)
+
+sce &lt;- runUMAP(sce, dimred = &quot;PCA&quot;, n_neighbors = 61, min_dist = 0.4)</code></pre>
+</div>
+</div>
+<div id="variables" class="section level2 tabset">
+<h2 class="tabset">Variables</h2>
+<div id="pca-1" class="section level3">
+<h3>PCA</h3>
 <pre class="r"><code>var &lt;- c(&quot;sum&quot;, &quot;detected&quot;, &quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;)
 
 plt &lt;- lapply(var, function(x) plotPCA(sce, colour_by = x))
 
-wrap_plots(plt, ncol = 2)</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-7-1.png" width="960" style="display: block; margin: auto;" /></p>
+patchwork::wrap_plots(plt, ncol = 2)</code></pre>
+<p><img src="figure/04-reduced-dimensions.Rmd/unnamed-chunk-20-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
-<div id="tsne" class="section level4">
-<h4>TSNE</h4>
+<div id="tsne-1" class="section level3">
+<h3>TSNE</h3>
 <pre class="r"><code>var &lt;- c(&quot;sum&quot;, &quot;detected&quot;, &quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;)
 
 plt &lt;- lapply(var, function(x) plotTSNE(sce, colour_by = x))
 
-wrap_plots(plt, ncol = 2)</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-8-1.png" width="960" style="display: block; margin: auto;" /></p>
+patchwork::wrap_plots(plt, ncol = 2)</code></pre>
+<p><img src="figure/04-reduced-dimensions.Rmd/unnamed-chunk-21-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
-<div id="umap" class="section level4">
-<h4>UMAP</h4>
+<div id="umap-1" class="section level3">
+<h3>UMAP</h3>
 <pre class="r"><code>var &lt;- c(&quot;sum&quot;, &quot;detected&quot;, &quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;)
 
 plt &lt;- lapply(var, function(x) plotUMAP(sce, colour_by = x))
 
-wrap_plots(plt, ncol = 2)</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-9-1.png" width="960" style="display: block; margin: auto;" /></p>
+patchwork::wrap_plots(plt, ncol = 2)</code></pre>
+<p><img src="figure/04-reduced-dimensions.Rmd/unnamed-chunk-22-1.png" width="960" style="display: block; margin: auto;" /></p>
 </div>
-</div>
-<div id="library" class="section level3 tabset">
-<h3 class="tabset">Library</h3>
-<p>Compute expression values from raw counts by scaling with library size factors:</p>
-<pre class="r"><code>set.seed(1101100100)
-
-sizeFactors(sce) &lt;- librarySizeFactors(sce)
-
-sce &lt;- logNormCounts(sce)
-
-sce &lt;- runPCA(sce, BSPARAM = ExactParam())
-
-sce &lt;- runTSNE(sce, dimred = &quot;PCA&quot;)
-
-sce &lt;- runUMAP(sce, dimred = &quot;PCA&quot;)</code></pre>
-<p>Inspect relative log expression plots coloured by column data:</p>
-<pre class="r"><code>plotRLE(sce[!nan, ])</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-11-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p>Inspect dimensionality reduction plots coloured by QC metrics:</p>
-<div id="pca-1" class="section level4">
-<h4>PCA</h4>
-<pre class="r"><code>var &lt;- c(&quot;sum&quot;, &quot;detected&quot;, &quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;)
-
-plt &lt;- lapply(var, function(x) plotPCA(sce, colour_by = x))
-
-wrap_plots(plt, ncol = 2)</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-12-1.png" width="960" style="display: block; margin: auto;" /></p>
-</div>
-<div id="tsne-1" class="section level4">
-<h4>TSNE</h4>
-<pre class="r"><code>var &lt;- c(&quot;sum&quot;, &quot;detected&quot;, &quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;)
-
-plt &lt;- lapply(var, function(x) plotTSNE(sce, colour_by = x))
-
-wrap_plots(plt, ncol = 2)</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-13-1.png" width="960" style="display: block; margin: auto;" /></p>
-</div>
-<div id="umap-1" class="section level4">
-<h4>UMAP</h4>
-<pre class="r"><code>var &lt;- c(&quot;sum&quot;, &quot;detected&quot;, &quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;)
-
-plt &lt;- lapply(var, function(x) plotUMAP(sce, colour_by = x))
-
-wrap_plots(plt, ncol = 2)</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-14-1.png" width="960" style="display: block; margin: auto;" /></p>
-</div>
-</div>
-<div id="deconvolution" class="section level3 tabset">
-<h3 class="tabset">Deconvolution</h3>
-<p>Compute expression values from raw counts by scaling with “deconvolved” size factors:</p>
-<pre class="r"><code>set.seed(1101100100)
-
-num &lt;- ifelse(ncol(sce) &lt; 100, ncol(sce), 100)
-
-mem &lt;- quickCluster(sce, min.size = num, BSPARAM = ExactParam())
-
-sizeFactors(sce) &lt;- calculateSumFactors(sce, cluster = mem)
-
-sce &lt;- logNormCounts(sce)
-
-sce &lt;- runPCA(sce, BSPARAM = ExactParam())
-
-sce &lt;- runTSNE(sce, dimred = &quot;PCA&quot;)
-
-sce &lt;- runUMAP(sce, dimred = &quot;PCA&quot;)</code></pre>
-<p>Inspect relative log expression plots coloured by column data:</p>
-<pre class="r"><code>plotRLE(sce[!nan, ])</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-16-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p>Inspect dimensionality reduction plots coloured by QC metrics:</p>
-<div id="pca-2" class="section level4">
-<h4>PCA</h4>
-<pre class="r"><code>var &lt;- c(&quot;sum&quot;, &quot;detected&quot;, &quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;)
-
-plt &lt;- lapply(var, function(x) plotPCA(sce, colour_by = x))
-
-wrap_plots(plt, ncol = 2)</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-17-1.png" width="960" style="display: block; margin: auto;" /></p>
-</div>
-<div id="tsne-2" class="section level4">
-<h4>TSNE</h4>
-<pre class="r"><code>var &lt;- c(&quot;sum&quot;, &quot;detected&quot;, &quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;)
-
-plt &lt;- lapply(var, function(x) plotTSNE(sce, colour_by = x))
-
-wrap_plots(plt, ncol = 2)</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-18-1.png" width="960" style="display: block; margin: auto;" /></p>
-</div>
-<div id="umap-2" class="section level4">
-<h4>UMAP</h4>
-<pre class="r"><code>var &lt;- c(&quot;sum&quot;, &quot;detected&quot;, &quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;)
-
-plt &lt;- lapply(var, function(x) plotUMAP(sce, colour_by = x))
-
-wrap_plots(plt, ncol = 2)</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-19-1.png" width="960" style="display: block; margin: auto;" /></p>
-</div>
-</div>
-<div id="spike-in" class="section level3 tabset">
-<h3 class="tabset">Spike-in</h3>
-<p>Compute expression values from raw counts by scaling with spike-in size factors:</p>
-<pre class="r"><code>set.seed(1101100100)
-
-sce &lt;- computeSpikeFactors(sce, &quot;ERCC&quot;)
-
-sce &lt;- logNormCounts(sce)
-
-sce &lt;- runPCA(sce, BSPARAM = ExactParam())
-
-sce &lt;- runTSNE(sce, dimred = &quot;PCA&quot;)
-
-sce &lt;- runUMAP(sce, dimred = &quot;PCA&quot;)</code></pre>
-<p>Inspect relative log expression plots coloured by column data:</p>
-<pre class="r"><code>plotRLE(sce[!nan, ])</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-21-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p>Inspect dimensionality reduction plots coloured by QC metrics:</p>
-<div id="pca-3" class="section level4">
-<h4>PCA</h4>
-<pre class="r"><code>var &lt;- c(&quot;sum&quot;, &quot;detected&quot;, &quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;)
-
-plt &lt;- lapply(var, function(x) plotPCA(sce, colour_by = x))
-
-wrap_plots(plt, ncol = 2)</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-22-1.png" width="960" style="display: block; margin: auto;" /></p>
-</div>
-<div id="tsne-3" class="section level4">
-<h4>TSNE</h4>
-<pre class="r"><code>var &lt;- c(&quot;sum&quot;, &quot;detected&quot;, &quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;)
-
-plt &lt;- lapply(var, function(x) plotTSNE(sce, colour_by = x))
-
-wrap_plots(plt, ncol = 2)</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-23-1.png" width="960" style="display: block; margin: auto;" /></p>
-</div>
-<div id="umap-3" class="section level4">
-<h4>UMAP</h4>
-<pre class="r"><code>var &lt;- c(&quot;sum&quot;, &quot;detected&quot;, &quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;)
-
-plt &lt;- lapply(var, function(x) plotUMAP(sce, colour_by = x))
-
-wrap_plots(plt, ncol = 2)</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-24-1.png" width="960" style="display: block; margin: auto;" /></p>
-</div>
-</div>
-<div id="downsample" class="section level3 tabset">
-<h3 class="tabset">Downsample</h3>
-<p>Compute expression values from raw counts by downsampling:</p>
-<pre class="r"><code>set.seed(1101100100)
-
-sizeFactors(sce) &lt;- librarySizeFactors(sce)
-
-sce &lt;- logNormCounts(sce, downsample = TRUE)
-
-sce &lt;- runPCA(sce, BSPARAM = ExactParam())
-
-sce &lt;- runTSNE(sce, dimred = &quot;PCA&quot;)
-
-sce &lt;- runUMAP(sce, dimred = &quot;PCA&quot;)</code></pre>
-<p>Inspect relative log expression plots coloured by column data:</p>
-<pre class="r"><code>plotRLE(sce[!nan, ])</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-26-1.png" width="960" style="display: block; margin: auto;" /></p>
-<p>Inspect dimensionality reduction plots coloured by QC metrics:</p>
-<div id="pca-4" class="section level4">
-<h4>PCA</h4>
-<pre class="r"><code>var &lt;- c(&quot;sum&quot;, &quot;detected&quot;, &quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;)
-
-plt &lt;- lapply(var, function(x) plotPCA(sce, colour_by = x))
-
-wrap_plots(plt, ncol = 2)</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-27-1.png" width="960" style="display: block; margin: auto;" /></p>
-</div>
-<div id="tsne-4" class="section level4">
-<h4>TSNE</h4>
-<pre class="r"><code>var &lt;- c(&quot;sum&quot;, &quot;detected&quot;, &quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;)
-
-plt &lt;- lapply(var, function(x) plotTSNE(sce, colour_by = x))
-
-wrap_plots(plt, ncol = 2)</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-28-1.png" width="960" style="display: block; margin: auto;" /></p>
-</div>
-<div id="umap-4" class="section level4">
-<h4>UMAP</h4>
-<pre class="r"><code>var &lt;- c(&quot;sum&quot;, &quot;detected&quot;, &quot;subsets_MT_percent&quot;, &quot;altexps_ERCC_percent&quot;)
-
-plt &lt;- lapply(var, function(x) plotUMAP(sce, colour_by = x))
-
-wrap_plots(plt, ncol = 2)</code></pre>
-<p><img src="figure/02-normalization.Rmd/unnamed-chunk-29-1.png" width="960" style="display: block; margin: auto;" /></p>
-</div>
-</div>
-</div>
-<div id="selection" class="section level2">
-<h2>Selection</h2>
-<p>Apply the chosen normalization to the experiment data:</p>
-<pre class="r"><code>set.seed(1101100100)
-
-num &lt;- ifelse(ncol(sce) &lt; 100, ncol(sce), 100)
-
-mem &lt;- quickCluster(sce, min.size = num, BSPARAM = ExactParam())
-
-sizeFactors(sce) &lt;- calculateSumFactors(sce, cluster = mem)
-
-sce &lt;- logNormCounts(sce)
-
-sce &lt;- runPCA(sce, BSPARAM = ExactParam())
-
-sce &lt;- runTSNE(sce, dimred = &quot;PCA&quot;)
-
-sce &lt;- runUMAP(sce, dimred = &quot;PCA&quot;)</code></pre>
 </div>
 <div id="summary" class="section level2">
 <h2>Summary</h2>
 <div id="output" class="section level3">
 <h3>Output</h3>
 <p>Save experiment object to disk:</p>
-<pre class="r"><code>saveRDS(sce, &quot;output/02-normalization.rds&quot;)</code></pre>
+<pre class="r"><code>saveRDS(sce, file = &quot;output/04-reduced-dimensions.rds&quot;)</code></pre>
 </div>
 <div id="session" class="section level3">
 <h3>Session</h3>
@@ -962,9 +882,9 @@ attached base packages:
 [8] methods   base     
 
 other attached packages:
- [1] scran_1.18.7                scater_1.18.6              
- [3] ggplot2_3.3.5               robustbase_0.93-8          
- [5] patchwork_1.1.1             SingleCellExperiment_1.12.0
+ [1] pheatmap_1.0.12             patchwork_1.1.1            
+ [3] scran_1.18.7                scater_1.18.6              
+ [5] ggplot2_3.3.5               SingleCellExperiment_1.12.0
  [7] SummarizedExperiment_1.20.0 Biobase_2.50.0             
  [9] GenomicRanges_1.42.0        GenomeInfoDb_1.26.7        
 [11] IRanges_2.24.1              S4Vectors_0.28.1           
@@ -973,50 +893,65 @@ other attached packages:
 [17] workflowr_1.6.2            
 
 loaded via a namespace (and not attached):
- [1] bitops_1.0-7              fs_1.5.0                 
- [3] rprojroot_2.0.2           tools_4.0.2              
- [5] bslib_0.2.5.1             utf8_1.2.1               
- [7] R6_2.5.0                  irlba_2.3.3              
- [9] vipor_0.4.5               uwot_0.1.10              
-[11] DBI_1.1.1                 colorspace_2.0-2         
-[13] withr_2.4.2               tidyselect_1.1.1         
-[15] gridExtra_2.3             compiler_4.0.2           
-[17] git2r_0.28.0              BiocNeighbors_1.8.2      
-[19] DelayedArray_0.16.3       labeling_0.4.2           
-[21] sass_0.4.0                scales_1.1.1             
-[23] DEoptimR_1.0-9            stringr_1.4.0            
-[25] digest_0.6.27             rmarkdown_2.9            
-[27] XVector_0.30.0            pkgconfig_2.0.3          
-[29] htmltools_0.5.1.1         sparseMatrixStats_1.2.1  
-[31] highr_0.9                 limma_3.46.0             
-[33] rlang_0.4.11              FNN_1.1.3                
-[35] DelayedMatrixStats_1.12.3 farver_2.1.0             
-[37] jquerylib_0.1.4           generics_0.1.0           
-[39] jsonlite_1.7.2            BiocParallel_1.24.1      
-[41] dplyr_1.0.7               RCurl_1.98-1.3           
-[43] magrittr_2.0.1            GenomeInfoDbData_1.2.4   
-[45] scuttle_1.0.4             Matrix_1.3-4             
-[47] Rcpp_1.0.6                ggbeeswarm_0.6.0         
-[49] munsell_0.5.0             fansi_0.5.0              
-[51] viridis_0.6.1             lifecycle_1.0.0          
-[53] stringi_1.6.2             whisker_0.4              
-[55] yaml_2.2.1                edgeR_3.32.1             
-[57] zlibbioc_1.36.0           Rtsne_0.15               
-[59] grid_4.0.2                promises_1.2.0.1         
-[61] dqrng_0.3.0               crayon_1.4.1             
-[63] lattice_0.20-44           cowplot_1.1.1            
-[65] beachmat_2.6.4            locfit_1.5-9.4           
-[67] knitr_1.33                pillar_1.6.1             
-[69] igraph_1.2.6              codetools_0.2-18         
-[71] glue_1.4.2                evaluate_0.14            
-[73] renv_0.13.2               vctrs_0.3.8              
-[75] httpuv_1.6.1              gtable_0.3.0             
-[77] purrr_0.3.4               assertthat_0.2.1         
-[79] xfun_0.24                 rsvd_1.0.5               
-[81] RSpectra_0.16-0           later_1.2.0              
-[83] viridisLite_0.4.0         tibble_3.1.2             
-[85] beeswarm_0.4.0            statmod_1.4.36           
-[87] bluster_1.0.0             ellipsis_0.3.2           </code></pre>
+  [1] corrplot_0.90             plyr_1.8.6               
+  [3] igraph_1.2.6              sp_1.4-5                 
+  [5] BiocParallel_1.24.1       tkrplot_0.0-25           
+  [7] digest_0.6.27             htmltools_0.5.1.1        
+  [9] viridis_0.6.1             fansi_0.5.0              
+ [11] magrittr_2.0.1            cluster_2.1.2            
+ [13] limma_3.46.0              tcltk2_1.2-11            
+ [15] jpeg_0.1-8.1              colorspace_2.0-2         
+ [17] ggrepel_0.9.1             xfun_0.24                
+ [19] dplyr_1.0.7               tcltk_4.0.2              
+ [21] crayon_1.4.1              RCurl_1.98-1.3           
+ [23] jsonlite_1.7.2            glue_1.4.2               
+ [25] gtable_0.3.0              zlibbioc_1.36.0          
+ [27] XVector_0.30.0            DelayedArray_0.16.3      
+ [29] scales_1.1.1              DBI_1.1.1                
+ [31] edgeR_3.32.1              Rcpp_1.0.6               
+ [33] viridisLite_0.4.0         dqrng_0.3.0              
+ [35] flashClust_1.01-2         rsvd_1.0.5               
+ [37] proxy_0.4-26              mclust_5.4.7             
+ [39] DT_0.18                   htmlwidgets_1.5.3        
+ [41] FNN_1.1.3                 RColorBrewer_1.1-2       
+ [43] ellipsis_0.3.2            factoextra_1.0.7         
+ [45] pkgconfig_2.0.3           reshape_0.8.8            
+ [47] farver_2.1.0              scuttle_1.0.4            
+ [49] nnet_7.3-16               sass_0.4.0               
+ [51] uwot_0.1.10               locfit_1.5-9.4           
+ [53] utf8_1.2.1                tidyselect_1.1.1         
+ [55] labeling_0.4.2            rlang_0.4.11             
+ [57] later_1.2.0               munsell_0.5.0            
+ [59] tools_4.0.2               generics_0.1.0           
+ [61] mmand_1.6.1               evaluate_0.14            
+ [63] stringr_1.4.0             yaml_2.2.1               
+ [65] knitr_1.33                fs_1.5.0                 
+ [67] purrr_0.3.4               randomForest_4.6-14      
+ [69] sparseMatrixStats_1.2.1   whisker_0.4              
+ [71] leaps_3.1                 RclusTool_0.91.3         
+ [73] compiler_4.0.2            beeswarm_0.4.0           
+ [75] png_0.1-7                 e1071_1.7-7              
+ [77] tibble_3.1.2              statmod_1.4.36           
+ [79] bslib_0.2.5.1             stringi_1.6.2            
+ [81] highr_0.9                 RSpectra_0.16-0          
+ [83] lattice_0.20-44           bluster_1.0.0            
+ [85] Matrix_1.3-4              vctrs_0.3.8              
+ [87] pillar_1.6.1              lifecycle_1.0.0          
+ [89] jquerylib_0.1.4           BiocNeighbors_1.8.2      
+ [91] cowplot_1.1.1             bitops_1.0-7             
+ [93] irlba_2.3.3               httpuv_1.6.1             
+ [95] R6_2.5.0                  promises_1.2.0.1         
+ [97] renv_0.13.2               gridExtra_2.3            
+ [99] vipor_0.4.5               codetools_0.2-18         
+[101] MASS_7.3-54               assertthat_0.2.1         
+[103] rprojroot_2.0.2           withr_2.4.2              
+[105] conclust_1.1              GenomeInfoDbData_1.2.4   
+[107] grid_4.0.2                beachmat_2.6.4           
+[109] class_7.3-19              rmarkdown_2.9            
+[111] DelayedMatrixStats_1.12.3 mda_0.5-2                
+[113] Rtsne_0.15                git2r_0.28.0             
+[115] scatterplot3d_0.3-41      FactoMineR_2.4           
+[117] ggbeeswarm_0.6.0         </code></pre>
 </div>
 </div>
 
