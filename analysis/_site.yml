@@ -27,6 +27,10 @@ navbar:
           href: 08-marker-detection.html
         - text: "Cell type annotation"
           href: 09-cell-annotation.html
+    - text: "Analysis"
+      menu:
+        - text: "Signaling analysis"
+          href: signaling-analysis.html
     - text: "Interactive"
       href: interactive.html
   right:
