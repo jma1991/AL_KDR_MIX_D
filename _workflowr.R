@@ -13,6 +13,7 @@ system("git add analysis/07-cell-cycle.Rmd")
 system("git add analysis/08-marker-detection.Rmd")
 system("git add analysis/09-cell-annotation.Rmd")
 system("git add analysis/signaling-analysis.Rmd")
+system("git add analysis/scenic-analysis.Rmd")
 system("git commit -m 'Build'")
 
 # Step 2: Build HTML files
@@ -30,6 +31,7 @@ wflow_build("analysis/07-cell-cycle.Rmd")
 wflow_build("analysis/08-marker-detection.Rmd")
 wflow_build("analysis/09-cell-annotation.Rmd")
 wflow_build("analysis/signaling-analysis.Rmd")
+wflow_build("analysis/scenic-analysis.Rmd")
 
 # Step 3: Commit HTML files
 
@@ -46,6 +48,7 @@ system("git add docs/07-cell-cycle.html")
 system("git add docs/08-marker-detection.html")
 system("git add docs/09-cell-annotation.html")
 system("git add docs/signaling-analysis.html")
+system("git add docs/scenic-analysis.html")
 system("git commit -m 'Build'")
 
 # Step 4: Commit PNG files
@@ -60,6 +63,7 @@ system("git add docs/figure/07-cell-cycle.Rmd")
 system("git add docs/figure/08-marker-detection.Rmd")
 system("git add docs/figure/09-cell-annotation.Rmd")
 system("git add docs/figure/signaling-analysis.Rmd")
+system("git add docs/figure/scenic-analysis.Rmd")
 system("git commit -m 'Build'")
 
 # Step 5: Commit docs files
