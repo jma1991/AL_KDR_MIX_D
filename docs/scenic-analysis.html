@@ -12,7 +12,7 @@
 <meta name="author" content="James Ashmore" />
 
 
-<title>Doublet detection</title>
+<title>SCENIC analysis</title>
 
 <script src="site_libs/header-attrs-2.9/header-attrs.js"></script>
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
@@ -412,7 +412,7 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Doublet detection</h1>
+<h1 class="title toc-ignore">SCENIC analysis</h1>
 <h4 class="author">James Ashmore</h4>
 <h4 class="date">12 August, 2021</h4>
 
@@ -575,7 +575,7 @@ Note that any generated files, e.g. HTML, png, CSS, etc., are not included in t
 <div id="versions" class="tab-pane fade">
 
 <p>
-These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/06-doublet-detection.Rmd</code>) and HTML (<code>docs/06-doublet-detection.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/scenic-analysis.Rmd</code>) and HTML (<code>docs/scenic-analysis.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
 </p>
 <div class="table-responsive">
 <table class="table table-condensed table-hover">
@@ -601,50 +601,16 @@ Message
 <tbody>
 <tr>
 <td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jma1991/AL_KDR_MIX_D/176ab74b145824c6eefa14e5bc79919a533672b7/docs/06-doublet-detection.html" target="_blank">176ab74</a>
-</td>
-<td>
-James Ashmore
-</td>
-<td>
-2021-07-30
-</td>
-<td>
-Build
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jma1991/AL_KDR_MIX_D/d3c9c34a05d0f1744b7c5cc1cbda5750844a94c2/docs/06-doublet-detection.html" target="_blank">d3c9c34</a>
-</td>
-<td>
-James Ashmore
-</td>
-<td>
-2021-07-26
-</td>
-<td>
-Build
-</td>
-</tr>
-<tr>
-<td>
 Rmd
 </td>
 <td>
-<a href="https://github.com/jma1991/AL_KDR_MIX_D/blob/ee46b4ce45228cd55cadc69d21b307619dc98f63/analysis/06-doublet-detection.Rmd" target="_blank">ee46b4c</a>
+<a href="https://github.com/jma1991/AL_KDR_MIX_D/blob/5eadba038b3199bad3ea7002cfe4df7d0d26a8da/analysis/scenic-analysis.Rmd" target="_blank">5eadba0</a>
 </td>
 <td>
 James Ashmore
 </td>
 <td>
-2021-07-26
+2021-08-12
 </td>
 <td>
 Build
@@ -657,124 +623,108 @@ Build
 </div>
 </div>
 </div>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>In this document we are going to analyse the output from the pySCENIC command-line software. SCENIC is a tool for single-cell regulatory network inference and clustering.</p>
+</div>
 <div id="setup" class="section level2">
 <h2>Setup</h2>
-<p>Set chunk options:</p>
+<p>Define chunk options:</p>
 <pre class="r"><code>knitr::opts_chunk$set(
   autodep    = TRUE,
   cache      = TRUE,
-  cache.path = &quot;cache/06-doublet-detection.Rmd/&quot;,
+  cache.path = &quot;cache/scenic-analysis.Rmd/&quot;,
   dev        = &quot;png&quot;,
   error      = FALSE,
   message    = FALSE,
-  warning    = FALSE
+  warning    = FALSE,
+  fig.align = &quot;center&quot;,
+  out.width = &#39;100%&#39;
 )</code></pre>
-<p>Load required packages:</p>
-<pre class="r"><code>library(scater)
-library(scran)
-library(scDblFinder)</code></pre>
-<p>Read experiment data:</p>
-<pre class="r"><code>sce &lt;- readRDS(&quot;output/05-clustering.rds&quot;)</code></pre>
-</div>
-<div id="detection" class="section level2">
-<h2>Detection</h2>
-<div id="by-cluster" class="section level3 tabset">
-<h3 class="tabset">By cluster</h3>
-<p>Check there are at least three clusters to detect doublet clusters:</p>
-<pre class="r"><code>num &lt;- nlevels(sce$cluster)
-
-run &lt;- ifelse(num &lt; 3, FALSE, TRUE)</code></pre>
-<p>Identify potential clusters of doublet cells based on intermediate expression profiles:</p>
-<pre class="r"><code>set.seed(0100001011)
-
-dbl &lt;- findDoubletClusters(sce, sce$cluster)</code></pre>
-<p>Annotate clusters that have unusually low number of unique genes:</p>
-<pre class="r"><code>out &lt;- isOutlier(dbl$num.de, type = &quot;lower&quot;, log = TRUE)
-
-ids &lt;- rownames(dbl)[out]
-
-sce$doublet_cluster &lt;- ifelse(sce$cluster %in% ids, TRUE, FALSE)</code></pre>
-<p>Inspect the distribution of doublet clusters on reduced dimensions:</p>
-<div id="pca" class="section level4">
-<h4>PCA</h4>
-<pre class="r"><code>plotPCA(sce, colour_by = &quot;cluster&quot;, shape_by = &quot;doublet_cluster&quot;)</code></pre>
-<p><img src="figure/06-doublet-detection.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
-</div>
-<div id="tsne" class="section level4">
-<h4>TSNE</h4>
-<pre class="r"><code>plotTSNE(sce, colour_by = &quot;cluster&quot;, shape_by = &quot;doublet_cluster&quot;)</code></pre>
-<p><img src="figure/06-doublet-detection.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
-</div>
-<div id="umap" class="section level4">
-<h4>UMAP</h4>
-<pre class="r"><code>plotUMAP(sce, colour_by = &quot;cluster&quot;, shape_by = &quot;doublet_cluster&quot;)</code></pre>
-<p><img src="figure/06-doublet-detection.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
-</div>
-</div>
-<div id="section" class="section level3 tabset">
-<h3 class="tabset"></h3>
-<p>Check for any doublet clusters:</p>
-<pre class="r"><code>run &lt;- any(sce$doublet_cluster)</code></pre>
-<p>Find significant marker genes between clusters:</p>
-<pre class="r"><code>res &lt;- findMarkers(sce, sce$cluster, direction = &quot;up&quot;)
-
-sig &lt;- lapply(res, subset, FDR &lt; 0.1)
-
-sig &lt;- Filter(nrow, sig)</code></pre>
-<p>Inspect the expression of marker genes across clusters:</p>
-<pre class="r"><code>for (i in ids) {
-  
-  dat &lt;- sig[[i]]
-  
-  dat &lt;- subset(dat, Top &lt;= 10)
-  
-  top &lt;- rownames(dat)
-  
-  cat(&quot;#### Cluster&quot;, i, &quot;\n&quot;)
-
-  plotHeatmap(sce, order_columns_by = &quot;cluster&quot;, features = top, center = TRUE, symmetric = TRUE)
-
-  cat(&quot;\n\n&quot;)
-
+<p>Load Bioconductor packages:</p>
+<pre class="r"><code>library(scuttle)</code></pre>
+<p>Load CRAN packages:</p>
+<pre class="r"><code>library(hues)
+library(pheatmap)
+library(viridis)</code></pre>
+<p>Define function to import AUCell matrix from text format:</p>
+<pre class="r"><code>importAUCfromText &lt;- function(fileName, rows=&quot;regulons&quot;, columns=&quot;cells&quot;, transpose=TRUE, newNames=NULL) {
+  aucMatrix &lt;- data.table::fread(fileName, drop=1)
+  cellNames &lt;- unname(unlist(data.table::fread(fileName, select=1, skip=1)))
+  if(transpose) aucMatrix &lt;- t(as.matrix(aucMatrix))
+  colnames(aucMatrix) &lt;- cellNames
+  if(!is.null(newNames)) rownames(aucMatrix) &lt;- unname(newNames[rownames(aucMatrix)])
+  names(dimnames(aucMatrix)) &lt;- c(rows, columns)
+  return(aucMatrix)
 }</code></pre>
 </div>
-<div id="by-cell" class="section level3 tabset">
-<h3 class="tabset">By cell</h3>
-<p>Identify potential doublet cells based on simulations of putative doublet expression profiles:</p>
-<pre class="r"><code>set.seed(1001110010)
+<div id="results" class="section level2">
+<h2>Results</h2>
+<p>Read experiment object:</p>
+<pre class="r"><code>sce &lt;- readRDS(&quot;output/09-cell-annotation.rds&quot;)</code></pre>
+<p>Make cell names unique:</p>
+<pre class="r"><code>N &lt;- ncol(sce)
 
-hvg &lt;- rowData(sce)$selected
+colnames(sce) &lt;- seq_len(N)</code></pre>
+<p>Import activity matrix:</p>
+<pre class="r"><code>auc &lt;- importAUCfromText(&quot;output/pyscenic/aucell.csv&quot;)</code></pre>
+<p>Rename experiment cells:</p>
+<pre class="r"><code>colnames(auc) &lt;- colnames(sce)</code></pre>
+<p>Order activity matrix by cluster:</p>
+<pre class="r"><code>auc &lt;- auc[, order(sce$cluster)]</code></pre>
+<p>Create heatmap colour palette:</p>
+<pre class="r"><code>phenotype.palette &lt;- c(&quot;HET&quot; = &quot;#BAB0AC&quot;, &quot;HOM&quot; = &quot;#E15759&quot;)
 
-dim &lt;- ncol(reducedDim(sce))
+cluster.palette &lt;- iwanthue(n = nlevels(sce$cluster))
 
-dbl &lt;- computeDoubletDensity(sce, subset.row = hvg, d = dim)
+cluster.palette &lt;- setNames(cluster.palette, levels(sce$cluster))
 
-sce$doublet_score &lt;- dbl</code></pre>
-<p>Inspect the distribution of doublet scores on reduced dimensions:</p>
-<div id="pca-1" class="section level4">
-<h4>PCA</h4>
-<pre class="r"><code>plotPCA(sce, colour_by = &quot;doublet_score&quot;)</code></pre>
-<p><img src="figure/06-doublet-detection.Rmd/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
-</div>
-<div id="tsne-1" class="section level4">
-<h4>TSNE</h4>
-<pre class="r"><code>plotTSNE(sce, colour_by = &quot;doublet_score&quot;)</code></pre>
-<p><img src="figure/06-doublet-detection.Rmd/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
-</div>
-<div id="umap-1" class="section level4">
-<h4>UMAP</h4>
-<pre class="r"><code>plotUMAP(sce, colour_by = &quot;doublet_score&quot;)</code></pre>
-<p><img src="figure/06-doublet-detection.Rmd/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
-</div>
-</div>
+celltype.palette &lt;- MouseGastrulationData::EmbryoCelltypeColours
+
+celltype.palette &lt;- subset(celltype.palette, names(celltype.palette) %in% sce$celltype)</code></pre>
+<p>Create heatmap annotation:</p>
+<pre class="r"><code>ann &lt;- list(
+  annotation_col = data.frame(
+    Cluster = sce$cluster, 
+    Celltype = sce$celltype, 
+    Phenotype = sce$phenotype, 
+    row.names = colnames(sce)
+  ),
+  annotation_colors = list(
+    Cluster = cluster.palette, 
+    Celltype = celltype.palette, 
+    Phenotype = phenotype.palette
+  )
+)</code></pre>
+<p>Plot matrix of AUC values for all regulons:</p>
+<pre class="r"><code>pheatmap(
+  mat = auc,
+  color = viridis(100),
+  cluster_cols = FALSE,
+  annotation_col = ann$annotation_col,
+  annotation_colors = ann$annotation_colors,
+  border_color = NA,
+  show_rownames = FALSE,
+  show_colnames = FALSE,
+)</code></pre>
+<p><img src="figure/scenic-analysis.Rmd/unnamed-chunk-12-1.png" width="100%" style="display: block; margin: auto;" /></p>
+<p>Identify most variable regulons:</p>
+<pre class="r"><code>idx &lt;- order(rowVars(auc), decreasing = TRUE)[1:30]</code></pre>
+<p>Plot matrix of AUC values for outlier regulons:</p>
+<pre class="r"><code>pheatmap(
+  mat = auc[idx, ],
+  color = viridis(100),
+  cluster_cols = FALSE,
+  annotation_col = ann$annotation_col,
+  annotation_colors = ann$annotation_colors,
+  border_color = NA,
+  show_rownames = TRUE,
+  show_colnames = FALSE,
+)</code></pre>
+<p><img src="figure/scenic-analysis.Rmd/unnamed-chunk-14-1.png" width="100%" style="display: block; margin: auto;" /></p>
 </div>
 <div id="summary" class="section level2">
 <h2>Summary</h2>
-<div id="output" class="section level3">
-<h3>Output</h3>
-<p>Save experiment object to disk:</p>
-<pre class="r"><code>saveRDS(sce, file = &quot;output/06-doublet-detection.rds&quot; )</code></pre>
-</div>
 <div id="session" class="section level3">
 <h3>Session</h3>
 <p>Print session information:</p>
@@ -795,59 +745,67 @@ attached base packages:
 [8] methods   base     
 
 other attached packages:
- [1] scDblFinder_1.4.0           scran_1.18.7               
- [3] scater_1.18.6               ggplot2_3.3.5              
- [5] SingleCellExperiment_1.12.0 SummarizedExperiment_1.20.0
- [7] Biobase_2.50.0              GenomicRanges_1.42.0       
- [9] GenomeInfoDb_1.26.7         IRanges_2.24.1             
-[11] S4Vectors_0.28.1            BiocGenerics_0.36.1        
-[13] MatrixGenerics_1.2.1        matrixStats_0.59.0         
-[15] workflowr_1.6.2            
+ [1] viridis_0.6.1               viridisLite_0.4.0          
+ [3] pheatmap_1.0.12             hues_0.2.0                 
+ [5] scuttle_1.0.4               SingleCellExperiment_1.12.0
+ [7] SummarizedExperiment_1.20.0 Biobase_2.50.0             
+ [9] GenomicRanges_1.42.0        GenomeInfoDb_1.26.7        
+[11] IRanges_2.24.1              S4Vectors_0.28.1           
+[13] BiocGenerics_0.36.1         MatrixGenerics_1.2.1       
+[15] matrixStats_0.59.0          workflowr_1.6.2            
 
 loaded via a namespace (and not attached):
- [1] bitops_1.0-7              fs_1.5.0                 
- [3] rprojroot_2.0.2           tools_4.0.2              
- [5] bslib_0.2.5.1             utf8_1.2.1               
- [7] R6_2.5.0                  irlba_2.3.3              
- [9] vipor_0.4.5               DBI_1.1.1                
-[11] colorspace_2.0-2          withr_2.4.2              
-[13] tidyselect_1.1.1          gridExtra_2.3            
-[15] compiler_4.0.2            git2r_0.28.0             
-[17] BiocNeighbors_1.8.2       DelayedArray_0.16.3      
-[19] labeling_0.4.2            sass_0.4.0               
-[21] scales_1.1.1              stringr_1.4.0            
-[23] digest_0.6.27             rmarkdown_2.9            
-[25] XVector_0.30.0            pkgconfig_2.0.3          
-[27] htmltools_0.5.1.1         sparseMatrixStats_1.2.1  
-[29] highr_0.9                 limma_3.46.0             
-[31] rlang_0.4.11              DelayedMatrixStats_1.12.3
-[33] farver_2.1.0              jquerylib_0.1.4          
-[35] generics_0.1.0            jsonlite_1.7.2           
-[37] BiocParallel_1.24.1       dplyr_1.0.7              
-[39] RCurl_1.98-1.3            magrittr_2.0.1           
-[41] BiocSingular_1.6.0        GenomeInfoDbData_1.2.4   
-[43] scuttle_1.0.4             Matrix_1.3-4             
-[45] Rcpp_1.0.6                ggbeeswarm_0.6.0         
-[47] munsell_0.5.0             fansi_0.5.0              
-[49] viridis_0.6.1             lifecycle_1.0.0          
-[51] stringi_1.6.2             whisker_0.4              
-[53] yaml_2.2.1                edgeR_3.32.1             
-[55] zlibbioc_1.36.0           grid_4.0.2               
-[57] promises_1.2.0.1          dqrng_0.3.0              
-[59] crayon_1.4.1              lattice_0.20-44          
-[61] cowplot_1.1.1             beachmat_2.6.4           
-[63] locfit_1.5-9.4            knitr_1.33               
-[65] pillar_1.6.1              igraph_1.2.6             
-[67] xgboost_1.4.1.1           codetools_0.2-18         
-[69] glue_1.4.2                evaluate_0.14            
-[71] data.table_1.14.0         renv_0.13.2              
-[73] vctrs_0.3.8               httpuv_1.6.1             
-[75] gtable_0.3.0              purrr_0.3.4              
-[77] assertthat_0.2.1          xfun_0.24                
-[79] rsvd_1.0.5                later_1.2.0              
-[81] viridisLite_0.4.0         tibble_3.1.2             
-[83] beeswarm_0.4.0            bluster_1.0.0            
-[85] statmod_1.4.36            ellipsis_0.3.2           </code></pre>
+  [1] colorspace_2.0-1              ellipsis_0.3.2               
+  [3] rprojroot_2.0.2               bluster_1.0.0                
+  [5] XVector_0.30.0                BiocNeighbors_1.8.2          
+  [7] fs_1.5.0                      farver_2.1.0                 
+  [9] bit64_4.0.5                   AnnotationDbi_1.52.0         
+ [11] interactiveDisplayBase_1.28.0 fansi_0.5.0                  
+ [13] codetools_0.2-18              sparseMatrixStats_1.2.1      
+ [15] cachem_1.0.5                  knitr_1.33                   
+ [17] jsonlite_1.7.2                dbplyr_2.1.1                 
+ [19] shiny_1.6.0                   BiocManager_1.30.16          
+ [21] compiler_4.0.2                httr_1.4.2                   
+ [23] dqrng_0.3.0                   assertthat_0.2.1             
+ [25] Matrix_1.3-4                  fastmap_1.1.0                
+ [27] limma_3.46.0                  later_1.2.0                  
+ [29] BiocSingular_1.6.0            htmltools_0.5.1.1            
+ [31] tools_4.0.2                   rsvd_1.0.5                   
+ [33] igraph_1.2.6                  gtable_0.3.0                 
+ [35] glue_1.4.2                    GenomeInfoDbData_1.2.4       
+ [37] dplyr_1.0.7                   rappdirs_0.3.3               
+ [39] Rcpp_1.0.6                    MouseGastrulationData_1.4.0  
+ [41] jquerylib_0.1.4               vctrs_0.3.8                  
+ [43] ExperimentHub_1.16.1          DelayedMatrixStats_1.12.3    
+ [45] xfun_0.24                     stringr_1.4.0                
+ [47] beachmat_2.6.4                mime_0.10                    
+ [49] lifecycle_1.0.0               irlba_2.3.3                  
+ [51] renv_0.13.2                   statmod_1.4.36               
+ [53] AnnotationHub_2.22.1          edgeR_3.32.1                 
+ [55] zlibbioc_1.36.0               scales_1.1.1                 
+ [57] promises_1.2.0.1              RColorBrewer_1.1-2           
+ [59] yaml_2.2.1                    curl_4.3.1                   
+ [61] memoise_2.0.0                 gridExtra_2.3                
+ [63] ggplot2_3.3.4                 sass_0.4.0                   
+ [65] stringi_1.6.2                 RSQLite_2.2.7                
+ [67] highr_0.9                     BiocVersion_3.12.0           
+ [69] scran_1.18.7                  BiocParallel_1.24.1          
+ [71] rlang_0.4.11                  pkgconfig_2.0.3              
+ [73] bitops_1.0-7                  evaluate_0.14                
+ [75] lattice_0.20-44               purrr_0.3.4                  
+ [77] bit_4.0.4                     tidyselect_1.1.1             
+ [79] magrittr_2.0.1                R6_2.5.0                     
+ [81] generics_0.1.0                DelayedArray_0.16.3          
+ [83] DBI_1.1.1                     pillar_1.6.1                 
+ [85] whisker_0.4                   RCurl_1.98-1.3               
+ [87] tibble_3.1.2                  crayon_1.4.1                 
+ [89] utf8_1.2.1                    BiocFileCache_1.14.0         
+ [91] rmarkdown_2.9                 locfit_1.5-9.4               
+ [93] grid_4.0.2                    data.table_1.14.0            
+ [95] blob_1.2.1                    git2r_0.28.0                 
+ [97] digest_0.6.27                 xtable_1.8-4                 
+ [99] httpuv_1.6.1                  munsell_0.5.0                
+[101] bslib_0.2.5.1                </code></pre>
 </div>
 </div>
 
